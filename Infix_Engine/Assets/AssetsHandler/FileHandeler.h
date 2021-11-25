@@ -1,5 +1,8 @@
 #pragma once
 
+//************************************************************************************************************************
+// GLFW Drop FIle loader and Handler
+//************************************************************************************************************************
 
 class FileHandeler
 {
@@ -23,14 +26,12 @@ FileHandeler::FileHandeler(GLFWwindow* window, GLuint shader_id)
 	glfwSetDropCallback(window, FileHandeler::drop_callback);
 	shaderID = shader_id;
 
-	FileHandeler::_instances.push_back(this); // push the classes instances onto the stack 
+	FileHandeler::_instances.push_back(this); // push the class's instances onto the stack 
 }
 
 void FileHandeler::drop_call(const char* path)
 {
-	//TextureLoader3D tex;
-	//tex.CreateTexture(path, shaderID, "input_tex"); //TODO: add asset handler with an aray of 3d textures for continualy storing textures!
-	//TODO: textures are created indefinatly so add a way to destroy them once the next file is droped
+
 }
 
 FileHandeler::~FileHandeler() {}

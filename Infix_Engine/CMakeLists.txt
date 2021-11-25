@@ -23,7 +23,8 @@ add_executable (Infix_Engine
 "3D-Graphics/Camera/Camera.h" 
  "includes/IMAGE_LOADER/stb_image.h"
  "Assets/AssetsHandler/TextureHandeler/TextureLoader2D.h" 
- "Assets/AssetsHandler/TextureHandeler/TextureLoader3D.h")
+ "Assets/AssetsHandler/TextureHandeler/TextureLoader3D.h" 
+ "Assets/AssetsHandler/TextureHandeler/TextureLoader1D.h" "VoxelPhysics/VoxelPhysics.h")
 
 add_subdirectory(includes/glad/)
 add_subdirectory(includes/glfw/)

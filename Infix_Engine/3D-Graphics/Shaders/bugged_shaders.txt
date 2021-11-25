@@ -8,6 +8,12 @@ thus making the image upscaled. Possible use of the alpha channel to upscale the
 However, may just use noise if the artifactes from the lower depth texture are noticble.
 */
 
+find how close the the ray is to the edge of the voxel it hit if it is with in a thresh hold of 0.05 units than that means it is an edge
+however, it then needs to be detected if there is a voxel next to it that is a diffrent than it's current ID. 
+this way you can have edge detection between the voxels and use the same method as shown above just this way it is more robust ^.
+
+add compressed textues
+
 void main()
 {
 	vec3 rayDir = FragPos - cam_pos; // This finds the direction vector - doing length(raDir) will find the length of the ray from the camera to the box that it intersects  
@@ -168,3 +174,166 @@ void main()
 
 	//float depth = length((rayDir + (MAX_RAY_SdTEPS/100.0))/10.0);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//*************************************************************************************************
+//8/31/2021 SHADER CODE
+//*************************************************************************************************
+
+#version 330 core
+
+in vec3 TexCoord;
+in vec3 FragPos;
+in float TexIndex;
+
+out vec4 fragColor;
+
+uniform sampler2D ourTexture;
+uniform sampler3D nature;
+uniform sampler1D natureP;
+uniform sampler3D input_tex;
+uniform sampler1D input_texP;
+uniform sampler3D u_Textures[2];
+
+
+uniform float slider;
+uniform vec3 cam_pos;
+uniform vec2 resolution;
+uniform vec3 box_size;
+
+
+
+void main()
+{
+	int index = int(TexIndex);
+
+	if (gl_FrontFacing)
+	{
+		vec3 rayDir = FragPos - cam_pos; // This finds the direction vector - doing length(raDir) will find the length of the ray from the camera to the box that it intersects  
+		vec3 rayPos = TexCoord * box_size;
+
+		vec3 mapPos = floor(rayPos);
+
+		vec3 deltaDist = abs(1.0 / rayDir); // ??????????
+		
+		vec3 rayStep = sign(rayDir);
+
+		vec3 sideDist = (rayStep * (mapPos - rayPos) + (rayStep * 0.5) + 0.5) * deltaDist; // first itteration and alignment
+		
+		vec3 mask;
+
+		//vec4 tex = texelFetch(nature, ivec3(mapPos), 0); // first itteration of ray step march
+	    vec4 tex = texelFetch(u_Textures[index], ivec3(mapPos), 0);
+
+		// This is the main marching loop it only exits if the ray touches the bouning box or it hits a textured cell
+		while(tex.r == 0.0)
+		{
+			if(any(greaterThan(mapPos, box_size)) || any(lessThan(mapPos, vec3(0))))
+			{
+				discard;
+				break;
+			}
+
+
+		    mask = vec3( lessThanEqual(sideDist.xyz, min(sideDist.yzx, sideDist.zxy)) );		
+			sideDist += mask * deltaDist;
+			mapPos += mask * rayStep;
+			//tex = texelFetch(nature, ivec3(mapPos), 0);
+			tex = texelFetch(u_Textures[index], ivec3(mapPos), 0);
+
+		}
+		
+		fragColor = texture(natureP, tex.r) + vec4(0.5, 0.5, 0.5, 0.5); // vec4(mask, 0.0); //+ vec4(0.1, 0.1, 0.1, 0.0); //+ vec4(mask/10.0, 0.0); //+ 8 * (mask.r+(mask.g/2.0)+(mask.b/3.0))/10.0;
+		//fragColor.rgb = vec3(1.0, 1.0, 1.0);
+	} else
+	{
+		//******************************************************************************************************************************
+		// Rendering the back faces of triangles
+		//******************************************************************************************************************************
+
+		vec3 rayDir = FragPos - cam_pos; // This finds the direction vector - doing length(raDir) will find the length of the ray from the camera to the box that it intersects  
+		vec3 rayPos = (cam_pos + box_size)/2.0; // TODO: fix only being able to fly throught the origin object!!!a
+
+		vec3 mapPos = floor(rayPos);
+
+		vec3 deltaDist = abs(1.0 / rayDir); // ??????????
+		
+		vec3 rayStep = sign(rayDir);
+
+		vec3 sideDist = (rayStep * (mapPos - rayPos) + (rayStep * 0.5) + 0.5) * deltaDist; // first itteration and alignment
+		
+		vec3 mask;
+
+		vec4 tex = texelFetch(nature, ivec3(mapPos), 0); // first itteration of ray step march
+
+		int i;
+		// This is the main marching loop it only exits if the ray touches the bouning box or it hits a textured cell
+		while(tex.r == 0.0 && i < 300 * slider)
+		{
+			if(any(greaterThan(mapPos, box_size)) || any(lessThan(mapPos, vec3(0))))
+			{
+				discard;
+				break;
+			}
+
+
+		    mask = vec3( lessThanEqual(sideDist.xyz, min(sideDist.yzx, sideDist.zxy)) );		
+			sideDist += mask * deltaDist;
+			mapPos += mask * rayStep;
+			tex = texelFetch(nature, ivec3(mapPos), 0);
+			i++;
+		}
+		
+		//fragColor = texture(natureP, tex.r); // vec4(mask, 0.0); //+ vec4(0.1, 0.1, 0.1, 0.0); //+ vec4(mask/10.0, 0.0); //+ 8 * (mask.r+(mask.g/2.0)+(mask.b/3.0))/10.0;
+		fragColor.rgb = vec3(tex.r, tex.g, tex.b);
+
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//9/15/2021
+

@@ -15,9 +15,6 @@ float input_move_camera_forward = 0.0;
 float input_move_camera_sideways = 0.0;
 float input_move_camera_upward = 0.0;
 
-
-
-
 class InputDevices
 {
 public:

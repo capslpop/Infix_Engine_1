@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 class Camera
 {
 public:
@@ -10,8 +8,8 @@ public:
 	~Camera();
 	
 public:
-	glm::vec3 cam_dir = glm::vec3(4.6, 3.14, 0.0); 
-	glm::vec3 cam_pos = glm::vec3(257.0, 0.0, 0.0);
+	glm::vec3 cam_dir = glm::vec3(0.0, 3.14, 0.0); 
+	glm::vec3 cam_pos = glm::vec3(0.0, 0.0, 0.0);
 
 	void update_delta_time();
 
@@ -32,41 +30,36 @@ glm::mat4 Camera::UpdateCameraMat(int window_width, int window_hight, float curs
 {
 	// Projection matrix : 60° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 	glm::mat4 Projection = glm::mat4(1);
-	Projection = glm::perspective(glm::radians(60.0f), (float)window_width / (float)window_hight, 0.1f, 1000.0f);
+	// TODO: fix stragne perspective bug where the camera slants baced on the fbo's resolution!?
+	Projection = glm::perspective(glm::radians(90.0f), (float)window_width / (float)window_hight, 0.1f, 1000000.0f);
 
-	cam_dir.x += cursor_dx / window_width; //* deltaTime;
-	cam_dir.y -= cursor_dy / window_hight; //* deltaTime;
+	cam_dir.x += cursor_dx / window_width * 2.0; //* deltaTime;
+	cam_dir.y -= cursor_dy / window_hight * 2.0; //* deltaTime;
 
 	if (cam_dir.y <= PI_HALF) cam_dir.y = PI_HALF;
 	if (cam_dir.y >= PI_AND_HALF) cam_dir.y = PI_AND_HALF;
 
-	//input_move_camera_forward
-
 	float cam_x_sin = sin(cam_dir.x);
 	float cam_x_cos = cos(cam_dir.x);
 
-	cam_pos += glm::vec3(input_move_camera_sideways * cam_x_cos -  input_move_camera_forward * cam_x_sin, input_move_camera_upward, -input_move_camera_sideways * cam_x_sin -  input_move_camera_forward * cam_x_cos) * deltaTime * 40.0f;
+	// move camera relitive only to the Y rotation of the camera
+	cam_pos += glm::vec3(input_move_camera_sideways * cam_x_cos -  input_move_camera_forward * cam_x_sin, input_move_camera_upward, -input_move_camera_sideways * cam_x_sin -  input_move_camera_forward * cam_x_cos) * deltaTime * 100.0f;
 
 	// view matrix
 	// rotate around to a given bearing: yaw
 	glm::mat4 trans = glm::translate(glm::mat4(1), cam_pos);
 
-
 	glm::mat4 camera_view = glm::rotate(glm::mat4(1), cam_dir.x, glm::vec3(0, 1, 0));
 	// Define the 'look up' axis, should be orthogonal to the up axis
 	// rotate around to the required head tilt: pitch
 	camera_view = glm::rotate(camera_view, cam_dir.y, glm::vec3(1, 0, 0)); // pitch
+	
 	// now get the view matrix by taking the camera inverse
-
-	//camera_view = glm::translate(camera_view, glm::vec3(0.0, 0.0, 5.0));
-
-	glm::mat4 View = glm::inverse( trans * camera_view ); // trans * camera_view for free cam
-
-
+	glm::mat4 View = glm::inverse( trans * camera_view );
 
 	glm::mat4 Model = glm::mat4(1);
-	// Our ModelViewProjection : multiplication of our 3 matrices
-	glm::mat4 mvp = Projection * View * Model; // Remember, matrix multiplication is the other way around
+	// ModelViewProjection : multiplication of 3 matrices backwords
+	glm::mat4 mvp = Projection * View * Model;
 
 	return mvp;
 }

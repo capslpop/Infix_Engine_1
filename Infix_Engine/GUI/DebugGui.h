@@ -7,7 +7,7 @@ public:
     ImGuiIO& InitDebugGui(GLFWwindow* window);
     void NewFrame();
     void DemoWindow();
-    bool SimpleWindow(GLint slider_var);
+    void SimpleWindow(unsigned int palette[256]);
     void AnotherWindow();
     void CustomWindow();
     void Render();
@@ -18,7 +18,7 @@ private:
     bool show_demo_window = true;
     bool show_another_window = false;
     bool show_custom_window = false;
-    float slider = 0.0f;
+    float slider_var = 1.0f;
     ImVec4 window_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 };
 
@@ -69,37 +69,46 @@ void DebugGui::DemoWindow()
     ImGui::ShowDemoWindow();
 }
 
-bool DebugGui::SimpleWindow(GLint slider_var)
+void DebugGui::SimpleWindow(unsigned int palette[256])
 {
-    static int counter = 0;
-    
-    bool button = 0;
+    ImGui::Begin("Palette");
+    //
+    //ImGui::Text("This is a window");               // Display some text (you can use a format strings too)
+    //
+    //
+    //
+    ////ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+    //ImGui::Checkbox("Another Window", &show_another_window);
+    //ImGui::Checkbox("Custom Window", &show_custom_window);
+    //
+    //ImGui::SliderFloat("float", &slider_var, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+    //ImGui::ColorEdit3("clear color", (float*)&window_color); // Edit 3 floats representing a color
+    //
+    //if (ImGui::Button("RECOMPILE SHADERS"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+    //{
+    //    button = 1;
+    //    counter++;
+    //}
+    //
+    //ImGui::SameLine();
+    //ImGui::Text("counter = %d", counter);
+    //
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-    ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-    
-    ImGui::Text("This is a window");               // Display some text (you can use a format strings too)
-    //ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-    ImGui::Checkbox("Another Window", &show_another_window);
-    ImGui::Checkbox("Custom Window", &show_custom_window);
-    
-    ImGui::SliderFloat("float", &slider, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-    ImGui::ColorEdit3("clear color", (float*)&window_color); // Edit 3 floats representing a color
-
-    if (ImGui::Button("RECOMPILE SHADERS"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+    for (int y = 0; y < 32; y++)
     {
-        button = 1;
-        counter++;
+        for (int x = 0; x < 8; x++)
+        {
+            ImGui::ColorButton(" ", ImVec4(ImGui::ColorConvertU32ToFloat4(palette[x + y * 8])));
+            if (x != 7)
+            {
+                ImGui::SameLine();
+            }
+        }
     }
 
-    ImGui::SameLine();
-    ImGui::Text("counter = %d", counter);
-    
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
     ImGui::End();
-
-    glUniform1f(slider_var, slider);
-
-    return button;
 }
 
 void DebugGui::AnotherWindow()
